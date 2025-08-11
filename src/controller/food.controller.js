@@ -2,31 +2,46 @@ import { Food } from "../models/food.model.js";
 import fs from "fs";
 import upload from "../lib/multer.js";
 import cloudinary from "../lib/cloudinary.js";
+import { log } from "console";
 
 //add food
 export const addFood = async (req, res) => {
   try {
+    // Log body and file for debugging
+    console.log("Request body:", req.body);
+    console.log("Request file:", req.file);
+
     const imageFile = req.file;
+
+    // If no image uploaded
     if (!imageFile) {
-      res.status(400).json({ message: "Image file is required" });
+      return res.status(400).json({ message: "Image file is required" });
     }
+
+    // Create the food document
     const food = new Food({
       name: req.body.name,
       description: req.body.description,
       price: req.body.price,
       category: req.body.category,
       image: {
-        url: imageFile.path,
-        public_id: imageFile.filename,
+        // Cloudinary storage uses `path` (local multer) or `secure_url` (cloudinary-storage)
+        url: imageFile.path || imageFile.secure_url,
+        public_id: imageFile.filename || imageFile.public_id,
       },
     });
+
     await food.save();
-    res.status(200).json({
-      message: "Food added Successfully",
+
+    return res.status(201).json({
+      message: "Food added successfully",
+      food,
     });
   } catch (error) {
-    console.error("Error in food controller: ", error);
-    res.status(500).json({ message: error.message || "Internal server Error" });
+    console.error("Error in food controller:", error);
+    return res.status(500).json({
+      message: error.message || "Internal server error",
+    });
   }
 };
 

@@ -1,14 +1,15 @@
 import { User } from "../models/user.models.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/jwt.js";
+import jwt from "jsonwebtoken";
 
 //register controller ""/api/user/register"
 export const registerUser = async (req, res) => {
-  const { name, email, password, mobile } = req.body;
+  const { name, email, password } = req.body;
   try {
     console.log("Received data:", req.body);
     //validate user input
-    if (!name || !email || !password || !mobile) {
+    if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
     //check passsword length
@@ -19,7 +20,7 @@ export const registerUser = async (req, res) => {
     //check if user exist
     const exisitingUser = await User.findOne({ email });
     if (exisitingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(409).json({ message: "User already exists" });
     }
     //create new user
     const salt = await bcrypt.genSalt(10);
@@ -27,17 +28,18 @@ export const registerUser = async (req, res) => {
     const newUser = new User({
       name,
       email,
-      mobile,
       password: hashedPassword,
-      avatar: "../public/assets/avatar.png",
+      avatar: "/assets/avatar.png",
     });
     await newUser.save();
-    generateToken(newUser._id, res);
+    const token = generateToken(newUser._id, res);
     res.status(201).json({
       _id: newUser._id,
       name: newUser.name,
       email: newUser.email,
       avatar: newUser.avatar,
+      token,
+      message: "User registered successfully",
     });
   } catch (error) {
     console.log("Error in registerUser controller:", error);
@@ -53,17 +55,19 @@ export const loginUser = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "User not found, Invalid credential" });
     }
-    const isPasswordCorrect = bcrypt.compare(password, user.password);
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      return res.status(400).json({ message: "Wrong Passwoerd" });
+      return res.status(400).json({ message: "Wrong Password" });
     }
-    generateToken(user._id, res);
+
+    const token = generateToken(user._id, res);
     res.status(200).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       avatar: user.avatar,
-      mobile: user.mobile,
+      token,
+      message: "Login Successful",
     });
   } catch (error) {
     console.log("Error in loginUser controller:", error);

@@ -17,9 +17,24 @@ const orderSchema = new mongoose.Schema(
     },
     product_details: {
       name: String,
+      required: true,
       image: String,
     },
-    payment_id: {},
+    payment_id: {
+      type: "String",
+    },
+    amount: {
+      type: Number,
+    },
+    status: {
+      type: String,
+      enum: ["pending", "completed", "cancelled", "refunded"],
+      default: "pending",
+    },
+    address: {
+      type: Object,
+      required: true,
+    },
   },
   { timestamps: true }
 );

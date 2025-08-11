@@ -3,8 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
-import router from "./routes/user.routes.js";
+import userRouter from "./routes/user.routes.js";
 import foodRouter from "./routes/food.routes.js";
+import cartRouter from "./routes/cart.routes.js";
 
 const app = express();
 dotenv.config();
@@ -12,8 +13,10 @@ dotenv.config();
 //app config
 app.use(
   cors({
+    origin: process.env.FRONTEND_URL,
     credentials: true,
-    origin: "process.env.FRONTEND_URL ",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "token", "Authorization"],
   })
 );
 
@@ -35,8 +38,8 @@ app.get("/", (req, res) => {
   });
 });
 app.use("/api/food", foodRouter);
-app.use("/api/user", router);
-app.use("/api/user", router);
+app.use("/api/user", userRouter);
+app.use("/api/cart", cartRouter);
 
 //server setup
 connectDB();

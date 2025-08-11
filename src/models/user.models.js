@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
-      default: "../public/assets/avatar.png",
+      default: "",
     },
     email: {
       type: String,
@@ -54,6 +54,7 @@ const userSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.ObjectId,
         ref: "CartProduct",
+        quantity: { type: Number, default: 1 },
       },
     ],
     order_history: [
